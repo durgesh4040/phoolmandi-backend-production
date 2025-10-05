@@ -210,6 +210,7 @@ app.get("/live/get", async (req, res) => {
     const limit = parseInt(req.query.limit) || 5;
       let search = (req.query.search || "").trim();
         search = search.replace(/^['"]+|['"]+$/g, "");
+        console.log(search);
   try{
        const query = search ? { name: { $regex: search, $options: "i" } } : {};
  const total = await liveModel.countDocuments(query);
