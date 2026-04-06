@@ -16,16 +16,7 @@ import { uploadImage } from './configuration/cloudinary.js';
 import seller from './router/seller.routes.js';
 import live from './router/live.routes.js';
 import liveModel from './model/liveModel.js';
-import il8n from "i18n";
 const app=express();
-export const i18n = new il8n({
-  locales: ["en"],
-  directory: path.join(__dirname, "transaltion"),
-  defaultLocale: "en",
-  objectNotation: true,
-  header: "locale",
-});
-app.use(i18n.init);
 app.use(express.json());
 app.use(cors());
 app.use("/api",user);
