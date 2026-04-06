@@ -4,7 +4,7 @@ import { liveFlowerGet, liveflowerSave } from "../controller/liveController.cont
 
 const router = express.Router();
 
-router.post("/live/save", upload.single("image"), liveflowerSave);
-router.get("/live/get",liveFlowerGet);
+router.post("/save", upload.single("image"), liveflowerSave);
+router.get("/get",liveFlowerGet);
 
 export default router;
