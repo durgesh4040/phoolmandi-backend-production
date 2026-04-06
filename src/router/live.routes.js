@@ -1,6 +1,6 @@
 import express from "express";
 import upload from "../utility/storage.js";
-import { liveFlowerGet, liveflowerSave } from "../controller/liveController.js";
+import { liveFlowerGet, liveflowerSave } from "../controller/liveController.controller.js";
 
 const router = express.Router();
 
