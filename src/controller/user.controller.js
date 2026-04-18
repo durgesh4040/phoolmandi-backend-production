@@ -57,9 +57,13 @@ export const test=async(req,res)=>{
 }
 
 //===================> Users Listing Api <===========
-export function  getAllUser(req,res,next){
+export async  function  getAllUser(req,res,next){
       try{
-       const data =await userModel.findAll();
+        const limit =req.query?.limit || 10;
+        if(req.query?.page){
+            page=req.query.page ? page*(limit-1):1
+        }
+       const data =await userModel.find();
        return res.status(200).send({
         status:"success",
         message:"",
