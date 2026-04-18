@@ -36,7 +36,6 @@ export const liveFlowerGet=async (req,res)=>{
     const limit = parseInt(req.query.limit) || 5;
       let search = (req.query.search || "").trim();
         search = search.replace(/^['"]+|['"]+$/g, "");
-        console.log(search);
   try{
        const query = search ? { name: { $regex: search, $options: "i" } } : {};
        const total = await liveModel.countDocuments(query);
@@ -52,7 +51,6 @@ export const liveFlowerGet=async (req,res)=>{
             live: live
         });
     } catch (error) {
-        console.error(error);
         res.status(500).json({ message: "Server error" });
     }
 }
