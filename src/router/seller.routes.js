@@ -1,7 +1,6 @@
-import { Router } from "express";
+import express from "express";
 import { sellerRegistration } from "../controller/sellerController.js";
-const router=Router();
+const api=express.Router();
+api.post("/",sellerRegistration);
 
-router.post("/auth/seller/register",sellerRegistration);
-
-export default router;
+export default api;
