@@ -18,6 +18,6 @@ if (process.env.APP_ENV === "prod") {
 
 const otpCache = new NodeCache({ stdTTL: 300 }); 
 app.listen(`${process.env.PORT}`,async ()=>{
- await  connection()
+//  await  connection()
     console.log(`server port start ${process.env.PORT} `)
 })

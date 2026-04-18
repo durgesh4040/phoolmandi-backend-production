@@ -6,7 +6,7 @@ const config = {
     // url: "mongodb://localhost:27017",
       url :  process.env.MONGO_URI,
     // TODO Change this to your database name:
-    databaseName: "YOURDATABASENAME",
+    databaseName: "phoolmandi-backend",
 
     options: {
       // useNewUrlParser: true, // (not needed anymore in mongodb driver 4.x+)
