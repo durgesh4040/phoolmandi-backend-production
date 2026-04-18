@@ -57,19 +57,97 @@ export const test = async (req, res) => {
 }
 
 //===================> Users Listing Api <===========
+// 1. Install the plugin
+// npm install mongoose-paginate-v2
+
+// 2. In your user model (models/User.js)
+import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
+
+const userSchema = new mongoose.Schema({
+    name: String,
+    email: String,
+    password: String,
+    // ... other fields
+}, {
+    timestamps: true
+});
+
+userSchema.plugin(mongoosePaginate);
+
+export default mongoose.model('User', userSchema);
+
+// 3. Updated controller
 export async function getAllUser(req, res, next) {
     try {
-        const limit = req.query?.limit || 10;
-        if (req.query?.page) {
-            page = req.query.page ? page * (limit - 1) : 1
+        // Validate pagination parameters
+        const page = Math.max(1, parseInt(req.query?.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query?.limit) || 10));
+        const skip = (page - 1) * limit;
+        const filter = {};
+        
+        if (req.query?.search) {
+            filter.$or = [
+                { name: { $regex: req.query.search, $options: 'i' } },
+                { email: { $regex: req.query.search, $options: 'i' } }
+            ];
         }
-        const data = await userModel.find();
-        return res.status(200).send({
+
+        if (req.query?.role) {
+            filter.role = req.query.role;
+        }
+
+        if (req.query?.status) {
+            filter.status = req.query.status;
+        }
+
+        // Get sorting
+        let sortOption = { createdAt: -1 }; // Default sort
+        
+        if (req.query?.sortBy) {
+            const sortBy = req.query.sortBy;
+            const order = req.query?.order === 'asc' ? 1 : -1;
+            sortOption = { [sortBy]: order };
+        }
+
+        // Execute query and count in parallel
+        const [users, total] = await Promise.all([
+            userModel
+                .find(filter)
+                .select('-password -__v -refreshToken')
+                .skip(skip)
+                .limit(limit)
+                .sort(sortOption)
+                .lean(),
+            userModel.countDocuments(filter)
+        ]);
+
+        // Calculate pagination metadata
+        const totalPages = Math.ceil(total / limit);
+        const hasNextPage = page < totalPages;
+        const hasPrevPage = page > 1;
+
+        return res.status(200).json({
             status: "success",
-            message: "",
-            data: data
-        })
+            message: users.length > 0 
+                ? "Users retrieved successfully" 
+                : "No users found",
+            data: users,
+            pagination: {
+                currentPage: page,
+                limit: limit,
+                totalDocs: total,
+                totalPages: totalPages,
+                hasNextPage: hasNextPage,
+                hasPrevPage: hasPrevPage,
+                nextPage: hasNextPage ? page + 1 : null,
+                prevPage: hasPrevPage ? page - 1 : null,
+                startIndex: skip + 1,
+                endIndex: Math.min(skip + limit, total)
+            }
+        });
     } catch (error) {
-        next(error)
+        console.error('Get all users error:', error);
+        next(error);
     }
 }
