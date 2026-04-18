@@ -3,7 +3,7 @@ import bcrypt, { hash } from "bcrypt";
 import { generateToken } from "../utility/util.js";
 export const register=async(req,res)=>{
 const {email,password,name,username}=req.body;
-    console.log(email,password,name)
+    console.log(email,password,name,username)
     const hashpassword=await bcrypt.hash(password,10);
     const user=await userModel.create({
         email:email,
