@@ -55,3 +55,17 @@ export const test=async(req,res)=>{
         msg:"successful login"
     })
 }
+
+//===================> Users Listing Api <===========
+export function  getAllUser(req,res,next){
+      try{
+       const data =await userModel.findAll();
+       return res.status(200).send({
+        status:"success",
+        message:"",
+        data:data
+       })
+      }catch(error){
+        next(error)
+      }
+}
