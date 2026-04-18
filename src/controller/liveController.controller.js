@@ -30,7 +30,6 @@ export const liveflowerSave = async (req, res) => {
   }
 };
 
-
 export const liveFlowerGet=async (req,res)=>{
  let page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
