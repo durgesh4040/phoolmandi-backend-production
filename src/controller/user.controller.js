@@ -1,15 +1,29 @@
 import userModel from "../model/userModel.js";
 import bcrypt, { hash } from "bcrypt";
 import { generateToken } from "../utility/util.js";
-export const register = async (req, res) => {
-    const { email, password, name, username } = req.body;
-    console.log(email, password, name, username);
+export async function register(req, res,next){
+    const {
+         firstname,
+         lastName,
+         email, 
+         password, 
+         phoneNo,
+         isEmailVerified,
+         isPhoneVerified,
+         createdBy,
+         updatedBy
+        } = req.body;
     const hashpassword = await bcrypt.hash(password, 10);
     const user = await userModel.create({
-        email: email,
+        email,
         password: hashpassword,
-        name: name,
-        username: username
+        firstname,
+        lastName,
+        phoneNo,
+        isEmailVerified,
+        isPhoneVerified,
+        createdBy,
+        updatedBy
     })
     console.log(user);
     const token = generateToken(user._id);
@@ -57,27 +71,6 @@ export const test = async (req, res) => {
 }
 
 //===================> Users Listing Api <===========
-// 1. Install the plugin
-// npm install mongoose-paginate-v2
-
-// 2. In your user model (models/User.js)
-import mongoose from 'mongoose';
-import mongoosePaginate from 'mongoose-paginate-v2';
-
-const userSchema = new mongoose.Schema({
-    name: String,
-    email: String,
-    password: String,
-    // ... other fields
-}, {
-    timestamps: true
-});
-
-userSchema.plugin(mongoosePaginate);
-
-export default mongoose.model('User', userSchema);
-
-// 3. Updated controller
 export async function getAllUser(req, res, next) {
     try {
         // Validate pagination parameters
