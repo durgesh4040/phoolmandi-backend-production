@@ -73,23 +73,19 @@ export const test = async (req, res) => {
 //===================> Users Listing Api <===========
 export async function getAllUser(req, res, next) {
     try {
-        // Validate pagination parameters
         const page = Math.max(1, parseInt(req.query?.page) || 1);
         const limit = Math.min(100, Math.max(1, parseInt(req.query?.limit) || 10));
         const skip = (page - 1) * limit;
         const filter = {};
-        
         if (req.query?.search) {
             filter.$or = [
                 { name: { $regex: req.query.search, $options: 'i' } },
                 { email: { $regex: req.query.search, $options: 'i' } }
             ];
         }
-
         if (req.query?.role) {
             filter.role = req.query.role;
         }
-
         if (req.query?.status) {
             filter.status = req.query.status;
         }
