@@ -136,7 +136,6 @@ export async function getAllUser(req, res, next) {
             }
         });
     } catch (error) {
-        console.error('Get all users error:', error);
         next(error);
     }
 }
