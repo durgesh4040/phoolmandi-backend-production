@@ -34,6 +34,15 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    otpCode:{
+      type:String,
+    },
+    otpExpire:{
+      type:String
+    },
+    token:{
+      type:String
+    },
     status:{
       type:String,
       default:"Active"
