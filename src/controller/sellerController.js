@@ -1,6 +1,6 @@
 import sellerModel from "../model/sellerModel.js";
 import bcrypt, { hash } from "bcrypt";
-import { generateToken } from "../utility/util.js";
+// import { generateToken } from "../utility/util.js";
 
 
 export const sellerRegistration = async (req, res) => {

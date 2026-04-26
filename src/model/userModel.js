@@ -43,6 +43,9 @@ const userSchema = new mongoose.Schema(
     token:{
       type:String
     },
+    userRole:{
+      type:String
+    }, 
     status:{
       type:String,
       default:"Active"

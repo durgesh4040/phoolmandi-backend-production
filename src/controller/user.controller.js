@@ -1,6 +1,7 @@
 import userModel from "../model/userModel.js";
 import bcrypt, { hash } from "bcrypt";
-import { generateToken } from "../utility/util.js";
+import { createAccesstoken } from "../utility/util.js";
+import { globalMailService } from "../service/globalMailService.js";
 export async function register(req, res, next) {
   const {
     firstname,
@@ -25,13 +26,24 @@ export async function register(req, res, next) {
     createdBy,
     updatedBy
   })
-  console.log(user);
-  const token = generateToken(user._id);
+  globalMailService(
+    {
+      to: user.email,
+      subject: "Registration Created Successfully",
+    },
+    {
+      userRegisteration: true,
+      name: user.firstname,
+      email: user.email,
+      otp: user.otpCode,
+    },
+    "en-mail-template.html"
+  );
+  const token = createAccesstoken(user);
   res.json({
     msg: user,
     token: token
   })
-
 }
 export const login = async (req, res) => {
   // console.log("hi");
@@ -284,11 +296,11 @@ export async function forgetPassword(req, res, next) {
       });
     } else {
       const data = userModel.updateOne(
-        { $set:{user_password: newPassword } },
+        { $set: { user_password: newPassword } },
         { email_address: email },
       );
       let dbData = await userModel.findOne(
-         {
+        {
           email: req?.body?.email,
         });
       const emailData = {
@@ -296,7 +308,7 @@ export async function forgetPassword(req, res, next) {
         subject: "Password Reset Successfully !",
       };
       const newInfo = {
-        firstname:dbData.first_name,
+        firstname: dbData.first_name,
         email: dbData.email_address,
         user_password: req.body.newPassword,
         forgetPassword: true,

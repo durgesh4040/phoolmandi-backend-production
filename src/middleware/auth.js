@@ -1,5 +1,5 @@
-import { decodeToken } from '../utils/jwt';
-import userModel from '../model/userModel';
+import { decodeToken } from "../utility/util.js"
+import userModel from '../model/userModel.js';
 export const ensureAuth = (...userType) => {
   return function(req, res, next){
   if (!req.headers.authorization && userType.includes("Guest")) {

@@ -1,9 +1,16 @@
 import nodemailer from "nodemailer";
 import handlebars from "handlebars";
 import fs from "fs";
-const path = require("path");
-require("dotenv").config();
+import path from "path";
+import dotenv from "dotenv";
+dotenv.config();
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const appRoot = path.resolve(__dirname);
+
+
+
 let readHTMLFile = function (path) {
   return new Promise((resolve, reject) => {
     fs.readFile(path, { encoding: "utf-8" }, function (err, html) {
