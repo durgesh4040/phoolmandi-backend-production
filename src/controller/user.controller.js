@@ -32,15 +32,15 @@ export async function register(req, res, next) {
       subject: "Registration Created Successfully",
     },
     {
-      userRegisteration: true,
-      name: user.firstname,
+      isRegistationByAdmin: true,
+      firstname: user.firstname,
       email: user.email,
-      otp: user.otpCode,
+      password:req.body.password,
     },
     "en-mail-template.html"
   );
   const token = createAccesstoken(user);
-  res.json({
+  res.status(201).send({
     msg: user,
     token: token
   })
