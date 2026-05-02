@@ -41,7 +41,9 @@ export async function register(req, res, next) {
   );
   const token = createAccesstoken(user);
   res.status(201).send({
-    msg: user,
+    status:"success",
+    message:res.__("users.create"),
+    data: user,
     token: token
   })
 }
