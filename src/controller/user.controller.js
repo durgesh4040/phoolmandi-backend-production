@@ -47,7 +47,7 @@ export async function register(req, res, next) {
     token: token
   })
 }
-export const login = async (req, res) => {
+export async  function   login  (req, res,next){
   // console.log("hi");
   const { email, password } = req.body;
   try {
@@ -78,7 +78,8 @@ export const login = async (req, res) => {
     })
   }
 }
-export const test = async (req, res) => {
+
+export async function test (req, res,next){
   res.json({
     msg: "successful login"
   })
