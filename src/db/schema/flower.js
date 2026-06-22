@@ -1,0 +1,22 @@
+import { pgTable, serial, varchar, integer, text, decimal, boolean, timestamp } from "drizzle-orm/pg-core";
+export const flowers = pgTable("flowers", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  categoryId: integer("category_id").notNull(),
+  imageUrl: varchar("image_url", { length: 500 }),
+  thumbnailUrl: varchar("thumbnail_url", { length: 500 }),
+  shortDescription: varchar("short_description", { length: 255 }),
+  description: text("description"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  compareAtPrice: decimal("compare_at_price", { precision: 10, scale: 2 }),
+  stockQuantity: integer("stock_quantity").notNull().default(0),
+  sku: varchar("sku", { length: 100 }).unique(),
+  createdBy: integer("created_by"),
+  updatedBy: integer("updated_by"),
+  metaTitle: varchar("meta_title", { length: 255 }),
+  metaDescription: varchar("meta_description", { length: 500 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at", {withTimezone: true,}),
+});

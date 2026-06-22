@@ -8,7 +8,7 @@ app.get("/api/getProduct/:sellerId",async (req,res)=>{
 })
 
 
-app.post("/api/saveProduct/:sellerId",upload.single('image'),async(req,res)=>{
+app.post("/",upload.single('image'),async(req,res,next)=>{
     const {productNames,productPrices,productUnits,productCategory}=req.body;
     const sellerId=req.params.sellerId;
     try{

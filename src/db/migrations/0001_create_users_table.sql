@@ -1,0 +1,22 @@
+CREATE TABLE "users" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"first_name" varchar(100),
+	"last_name" varchar(100),
+	"email" varchar(255) NOT NULL,
+	"phone" varchar(20),
+	"password" varchar(255) NOT NULL,
+	"is_email_verified" boolean DEFAULT false NOT NULL,
+	"is_phone_verified" boolean DEFAULT false NOT NULL,
+	"otp_code" varchar(10),
+	"otp_expire" varchar(100),
+	"token" varchar(500),
+	"user_role" varchar(50),
+	"status" varchar(50) DEFAULT 'Active' NOT NULL,
+	"created_by" integer,
+	"updated_by" integer,
+	"deleted_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "users_email_unique" UNIQUE("email"),
+	CONSTRAINT "users_phone_unique" UNIQUE("phone")
+);

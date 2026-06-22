@@ -1,100 +1,144 @@
-import { decodeToken } from "../utility/util.js"
-import userModel from '../model/userModel.js';
+import { decodeToken } from "../utility/util.js";
+import { users } from "../db/schema/user.js";
+import { db } from "../configuration/db.js";
+import { eq, and, sql } from "drizzle-orm";
+
 export const ensureAuth = (...userType) => {
-  return function(req, res, next){
-  if (!req.headers.authorization && userType.includes("Guest")) {
-    return next();
-  }   
-  if (!req.headers.authorization) {
-    return res
-      .status(401)
-      .send({ status:"error", message: "The request does not have an Authentication header." });
-  }
-
-  // Remove Bearer from string
-  const token = req.headers.authorization.replace(/^Bearer\s+/, "");
-
-  try {
-    var payload = decodeToken(token);
-    if (payload.expiresIn < Math.floor(new Date().getTime() / 1000)) {
-      return res.status(401).send({ status:"error", message: "Token Expired" });
-    }
-  } catch (err) {
-    return res.status(401).send({ status:"error", message: "Invalid Token" });
-  }
-
-  userModel.findOne({
-       _id: payload.id,
-       status: 'Active'
- })
- .then((user)=>{
-    if (!user) {
-        return res.status(404).send({ status:"error", message: "Invalid User" });
-    }
-    
-    if(user.user_type === "Admin" || userType.includes(user.user_type) || userType.includes('Guest')){
-      req.user = payload;
-      console.log("req.permission",req.permission)
-      req.permission.global =true
-      if (
-        user?.Role?.accessIDs?.split(",")?.includes(req.module + "-global") &&
-        user.user_type !== "Admin"
-      ) {
-        req.permission.global = true;
-      }
+  return async function(req, res, next) {
+    // Allow guest access if no authorization header and Guest is permitted
+    if (!req.headers.authorization && userType.includes("Guest")) {
       return next();
     }
 
-    if (!user.Role?.accessIDs.split(",").includes(req.permission.module)) {
-      return res
-        .status(403)
-        .send({ status: "error", message: "Access Denied" });
+    // Reject if no authorization header
+    if (!req.headers.authorization) {
+      return res.status(401).send({
+        status: "error",
+        message: "The request does not have an Authentication header."
+      });
     }
 
-    if (user.Role.accessIDs.split(",").includes(req.module + "-global")) {
-      req.permission.global = true;
-    } else {
-      req.permission.global = false;
+    // Remove Bearer from string
+    const token = req.headers.authorization.replace(/^Bearer\s+/, "");
+
+    // Decode and validate token
+    let payload;
+    try {
+      payload = decodeToken(token);
+      if (payload.expiresIn < Math.floor(Date.now() / 1000)) {
+        return res.status(401).send({
+          status: "error",
+          message: "Token Expired"
+        });
+      }
+    } catch (err) {
+      return res.status(401).send({
+        status: "error",
+        message: "Invalid Token"
+      });
     }
-    req.user = payload;
-    return next();
- })
- .catch((err)=>{
-  console.log(err)
-  res.status(500).send({ status:"error", message: "Server Error", result:err })
- })
 
-};
+    try {
+      // Find user by ID with Drizzle - handle both string and int IDs
+      const userId = parseInt(payload.id) || payload.id;
+
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(
+          and(
+            eq(users.id, userId),
+            eq(users.status, "Active"),
+            sql`${users.deletedAt} IS NULL`
+          )
+        )
+        .limit(1);
+
+      if (!user) {
+        return res.status(404).send({
+          status: "error",
+          message: "Invalid User"
+        });
+      }
+
+      // Initialize permission object (safety check)
+      req.permission = req.permission || {};
+
+      // Admin bypass or allowed user type
+      if (
+        user.userRole === "Admin" ||
+        userType.includes(user.userRole) ||
+        userType.includes("Guest")
+      ) {
+        req.user = payload;
+        req.permission.global = true;
+
+        // Check if user has global access for this module (non-Admin)
+        if (
+          user?.roleAccess?.split(",")?.includes(req.module + "-global") &&
+          user.userRole !== "Admin"
+        ) {
+          req.permission.global = true;
+        }
+
+        return next();
+      }
+
+      // Check module permission
+      const accessIDs = user.roleAccess ? user.roleAccess.split(",") : [];
+
+      if (!accessIDs.includes(req.permission?.module)) {
+        return res.status(403).send({
+          status: "error",
+          message: "Access Denied"
+        });
+      }
+
+      // Set global permission flag
+      if (accessIDs.includes(req.module + "-global")) {
+        req.permission.global = true;
+      } else {
+        req.permission.global = false;
+      }
+
+      req.user = payload;
+      return next();
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send({
+        status: "error",
+        message: "Server Error",
+        result: err.message
+      });
+    }
+  };
 };
 
- 
 export const setModule = (module) => {
-  return function(req, res, next){
+  return function(req, res, next) {
     req.module = module;
 
     switch (req.method) {
-      case 'GET':
-        req.permission = { module: module+'-read' };
+      case "GET":
+        req.permission = { module: module + "-read" };
         break;
-    
-      case 'POST':
-        req.permission = { module: module+'-write' };
+      case "POST":
+        req.permission = { module: module + "-write" };
         break;
-
-      case 'PUT':
-        req.permission = { module: module+'-write' };
+      case "PUT":
+        req.permission = { module: module + "-write" };
         break;
-
-      case 'PATCH':
-        req.permission = { module: module+'-all' };
+      case "PATCH":
+        req.permission = { module: module + "-all" };
         break;
-
-      case 'DELETE':
-        req.permission = { module: module+'-all' };
+      case "DELETE":
+        req.permission = { module: module + "-all" };
         break;
       default:
+        req.permission = { module: module + "-read" };
         break;
     }
     next();
-  }
-}
+  };
+};
