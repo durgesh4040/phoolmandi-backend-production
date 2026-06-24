@@ -1,186 +1,320 @@
-app.get("/api/getProduct/:sellerId",async (req,res)=>{
-    const sellerId=req.params.sellerId;
-    console.log(sellerId);
-    const product=await flowerModel.find({seller:sellerId});
-    res.json({
-        product:product
-    })
-})
+import { eq, and, or, like, desc, asc, sql } from "drizzle-orm";
+import { categories } from "../db/schema/categories.js";
+import { flowers } from "../db/schema/flower.js";
+import { db } from "../configuration/db.js";
+import bcrypt from "bcrypt";
 
+export async function createProducts(req, res, next) {
+    try {
+        const {
+            name,
+            slug,
+            categoryId,
+            imageUrl,
+            thumbnailUrl,
+            shortDescription,
+            description,
+            price,
+            compareAtPrice,
+            stockQuantity,
+            sku,
+            metaTitle,
+            metaDescription,
+        } = req.body;
+        const [product] = await db
+            .insert(flowers)
+            .values({
+                name,
+                slug,
+                categoryId: Number(categoryId),
+                imageUrl,
+                thumbnailUrl,
+                shortDescription,
+                description,
+                price: Number(price),
+                compareAtPrice: compareAtPrice
+                    ? Number(compareAtPrice)
+                    : null,
+                stockQuantity: Number(stockQuantity || 0),
+                sku,
+                metaTitle,
+                metaDescription,
+                createdBy: req.user?.id,
+                updatedBy: req.user?.id,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            })
+            .returning();
 
-app.post("/",upload.single('image'),async(req,res,next)=>{
-    const {productNames,productPrices,productUnits,productCategory}=req.body;
-    const sellerId=req.params.sellerId;
-    try{
-       if (!req.file) {
-      return res.status(400).json({ error: "Image is required" });
-    }
-    const imagePath=req.file.path;
-    const result=await uploadImage(imagePath);
-    const response=await flowerModel.create({
-        productNames:productNames,
-        productPrices:productPrices,
-        productUnits:productUnits,
-        productCategory:productCategory,
-        image:result,   
-        seller:sellerId     
-})
-res.json({
-        message:"data save successful"
-    })
-}catch(error){
-    console.log(response)
-}
-})
-
-app.delete("/api/productDelete/:id",async (req,res)=>{
-    const id=req.params.id;
-      if (!id) {
-    return res.status(400).json({ msg: "No id provided" });
-  }
-    try{
- const response=await flowerModel.deleteOne({_id:id})
- console.log(response);
- res.json({
-    msg:"product successfully delete"
- })
-}catch(error){
-    res.json({
-        msg:"Unsuccessful product not delete"
-    })
-}
-})
-
-
-app.patch("/api/productUpdate/:id", async (req, res) => {
-  try {
-      const id = req.params.id.trim();
-   const {productNames,productPrices,productUnits,productCategory}=req.body;
-
-    const response = await flowerModel.updateOne(
-      { _id: id },
-      { $set:{productNames,productPrices,productUnits,productCategory}}
-    );
-
-    if (response.modifiedCount === 0) {
-      return res.status(404).json({ message: "Product not found or no changes made" });
-    }
-
-    res.json({ message: "Data updated successfully" });
-  } catch (error) {
-    console.error("Error updating product:", error);
-    res.status(500).json({ message: "Server error", error });
-  }
-});
-
-app.get("/api/getProduct/:sellerId",async (req,res)=>{
-    const sellerId=req.params.sellerId;
-    console.log(sellerId);
-    const product=await flowerModel.find({seller:sellerId});
-    res.json({
-        product:product
-    })
-})
-
-app.post("/api/seller/registration",async(req,res)=>{
-    const {email,name,password,companyName,address,phoneNumber}=req.body;
-    const selleruser=await sellerModel.findOne({email});
-    if(selleruser){
-        res.status(400).json({
-            msg:"seller already exists"
-        })
-    }
-    const hashpassword=await bcrypt.hash(password,10);
-    const user=await sellerModel.create({
-        email:email,
-        password:hashpassword,
-        phoneNumber:phoneNumber,
-        address:address,
-        name:name,
-        companyName:companyName
-})
-const token=generateToken(user._id)
-res.json({
-    msg:"seller successful created",
-    token:token
-})
-})
-app.post("/api/seller/login",async(req,res)=>{
-    const {email,password}=req.body;
-    try{
-    const user=await sellerModel.findOne({email});
-    console.log(user);
-    const compare=await bcrypt.compare(password,user.password);
-   const   token=generateToken(user._id);
-    if(!user){
-        res.status(400).json({
-            msg:"seller not exists"
-            
-        })
-    }
-    if(compare){
-        res.status(200).json({
-            msg: "successful login",
-            token:token,
-            user:user
-        })
-    }
-    else {
-        res.status(400).json({
-            msg:"password is incorrect"
-        })
+        return res.status(201).json({
+            status: "success",
+            message: res.__("categories.create") || "Categories created successfully",
+            data: product,
+        });
+    } catch (error) {
+        next(error);
     }
 }
-catch(error){
-    console.log(error)
-    res.status(500).json({
-        msg:"server error"
-    })
+
+export async function getAllProducts(req, res, next) {
+    try {
+        const page = Math.max(1, parseInt(req.query?.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query?.limit) || 10));
+        const offset = (page - 1) * limit;
+        const conditions = [];
+        let categorySearchActive = false;
+        if (req.query?.search) {
+            const searchTerm = `%${req.query.search}%`;
+            conditions.push(
+                or(
+                    like(flowers.name, searchTerm),
+                    like(flowers.description, searchTerm),
+                    like(flowers.sku, searchTerm),
+                    like(categories.name, searchTerm),
+                    like(categories.slug, searchTerm),
+                    like(categories.description, searchTerm)
+                )
+            );
+            categorySearchActive = true;
+        }
+        if (req.query?.categoryId) {
+            conditions.push(eq(categories.id, req.query.categoryId));
+            categorySearchActive = true;
+        }
+        if (req.query?.categorySlug) {
+            conditions.push(eq(categories.slug, req.query.categorySlug));
+            categorySearchActive = true;
+        }
+        if (req.query?.status) {
+            conditions.push(eq(products.status, req.query.status));
+        }
+        const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+        let orderBy = [desc(flowers.createdAt)];
+        if (req.query?.sortBy) {
+            const sortColumn = flowers[req.query.sortBy] || categories[req.query.sortBy];
+            if (sortColumn) {
+                const order = req.query?.order === "asc" ? asc : desc;
+                orderBy = [order(sortColumn)];
+            }
+        }
+        const useInnerJoin = categorySearchActive;
+        let query = db
+            .select({
+                id: flowers.id,
+                name: flowers.name,
+                description: flowers.description,
+                price: flowers.price,
+                sku: flowers.sku,
+                stockQuantity: flowers.stockQuantity,
+                categoryId: flowers.categoryId,
+                createdAt: flowers.createdAt,
+                updatedAt: flowers.updatedAt,
+                createdBy: flowers.createdBy,
+                updatedBy: flowers.updatedBy,
+                category: {
+                    id: categories.id,
+                    name: categories.name,
+                    slug: categories.slug,
+                    description: categories.description,
+                    imageUrl: categories.imageUrl,
+                    status: categories.status,
+                    createdAt: categories.createdAt
+                }
+            })
+            .from(flowers);
+        if (useInnerJoin) {
+            query = query.innerJoin(categories, eq(flowers.categoryId, categories.id));
+        } else {
+            query = query.leftJoin(categories, eq(flowers.categoryId, categories.id));
+        }
+        const productsList = await query
+            .where(whereClause)
+            .orderBy(...orderBy)
+            .limit(limit)
+            .offset(offset);
+        let countQuery = db
+            .select({ count: sql`count(*)` })
+            .from(flowers);
+
+        if (useInnerJoin) {
+            countQuery = countQuery.innerJoin(categories, eq(flowers.categoryId, categories.id));
+        } else {
+            countQuery = countQuery.leftJoin(categories, eq(flowers.categoryId, categories.id));
+        }
+
+        const countResult = await countQuery.where(whereClause);
+        const totalCount = parseInt(countResult[0].count);
+        const totalPages = Math.ceil(totalCount / limit);
+
+        return res.status(200).send({
+            status: "success",
+            message: productsList.length > 0
+                ? "Products retrieved successfully"
+                : "No products found",
+            meta: {
+                joinUsed: useInnerJoin ? 'INNER JOIN' : 'LEFT JOIN',
+                categorySearchActive: categorySearchActive,
+                appliedFilters: {
+                    search: req.query?.search || null,
+                    categoryId: req.query?.categoryId || null,
+                    categorySlug: req.query?.categorySlug || null,
+                    status: req.query?.status || null,
+                    categoryStatus: req.query?.categoryStatus || null
+                }
+            },
+            data: productsList,
+            pagination: {
+                currentPage: page,
+                limit: limit,
+                totalDocs: totalCount,
+                totalPages: totalPages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+                nextPage: page < totalPages ? page + 1 : null,
+                prevPage: page > 1 ? page - 1 : null,
+                startIndex: offset + 1,
+                endIndex: Math.min(offset + limit, totalCount)
+            }
+        });
+
+    } catch (error) {
+        next(error);
+    }
 }
-})
-app.get("/auth",auth,async (req,res)=>{
-res.json({
-    message:"json logo verify useful"
-})
-})
-app.post("/api/public/sendOtp",async(req,res)=>{
-    const {email}=req.query;
-    let otp=Math.floor(100000+Math.random()*900000);
-    console.log(otp)
-    console.log(email)
-   const  subject="OTP send to phoolmandi"
-   const  text=`OTP SENT ${otp}`;
-   otpCache.set(email,otp);
-   await  sendEmail(email,subject,text);
-    res.status(200).json({
-        message:"send successful"
-    })
-})
 
-app.post("/api/public/verifyOtp",async(req,res)=>{
-    const {email,otp}=req.query;
-    const cachedOtp=otpCache.get(email);
-    if(!cachedOtp){
-        return res.status(400).json({message:"OTP expired or not found"})
+export async function getAllProductsById(req, res, next) {
+    try {
+        const productId = Number(req.params.id);
+        if (isNaN(productId)) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid Product id",
+            });
+        }
+        const [flowersData] = await db
+            .select(
+                {
+                    id: flowers.id,
+                    name: flowers.name,
+                    slug: flowers.slug,
+                    imageUrl: flowers.imageUrl,
+                    thumbnailUrl: flowers.thumbnailUrl,
+                    shortDescription: flowers.shortDescription,
+                    description: flowers.description,
+                    price: flowers.price,
+                    compareAtPrice: flowers.compareAtPrice,
+                    stockQuantity: flowers.stockQuantity,
+                    sku: flowers.sku,
+                    metaTitle: flowers.metaTitle,
+                    metaDescription: flowers.metaDescription,
+                    createdBy: flowers.createdBy,
+                    updatedBy: flowers.updatedBy,
+                    createdAt: flowers.createdAt,
+                    updatedAt: flowers.updatedAt,
+                    deletedAt: flowers.deletedAt,
+                    category: {
+                        id: categories.id,
+                        name: categories.name,
+                        slug: categories.slug
+                    }
+                }
+            )
+            .from(flowers)
+            .leftJoin(categories, eq(flowers.categoryId, categories.id))
+            .where(
+                and(
+                    eq(flowers.id, productId),
+                    sql`${flowers.deletedAt} IS NULL`
+                )
+            )
+            .limit(1);
+        if (!flowers) {
+            return res.status(404).json({
+                status: "error",
+                message: "Flowers not found",
+            });
+        }
+        return res.status(200).json({
+            status: "success",
+            message:"",
+            data: flowersData
+        });
+    } catch (error) {
+        next(error);
     }
+}
 
-    if(parseInt(otp)===cachedOtp){
-        otpCache.del(email);
-        return res.status(200).json({message:"OTP verified successful"})
+export async function updateProducts(req, res, next) {
+    try {
+        const productId = parseInt(req.params.id);
+        if (isNaN(productId)) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid product Id"
+            });
+        }
+        const updateData = { ...req.body };
+        updateData.updatedAt = new Date();
+        const [updatedFlowers] = await db
+            .update(flowers)
+            .set(updateData)
+            .where(
+                and(
+                    eq(flowers.id, productId),
+                    sql`${categories.deletedAt} IS NULL`
+                )
+            )      
+
+        if (!updatedFlowers) {
+            return res.status(404).json({
+                status: "error",
+                message: "Flowers not found"
+            });
+        }
+        return res.status(200).json({
+            status: "success",
+            message: "Flowers updated successfully",
+            data:updateData
+        });
+    } catch (error) {
+        next(error);
     }
-    else{
-        return res.status(400).json({message:"Invalid OTP"})
+}
+
+
+export async function deleteProducts(req, res, next) {
+    try {
+        const productId = parseInt(req.params.id);
+        if (isNaN(productId)) {
+            return res.status(400).json({
+                status: "error",
+                message: "Product Id not found"
+            });
+        }
+        const [productCategory] = await db
+            .update(flowers)
+            .set({
+                deletedAt: new Date(),
+                status: "Inactive",
+                updatedAt: new Date()
+            })
+            .where(
+                and(
+                    eq(products.id, productId),
+                    sql`${categories.deletedAt} IS NULL`
+                )
+            )
+        if (!productIdy) {
+            return res.status(404).json({
+                status: "error",
+                message: "Product not found or already deleted"
+            });
+        }
+        return res.status(200).json({
+            status: "success",
+            message: "Product deleted successfully",
+        });
+    } catch (error) {
+        next(error);
     }
-})
-app.get("/api/public/allSeller",async (req,res)=>{
-   
-    try{
-    const email=req.params.email;
-    const response =await sellerModel.find();
-    res.json(response);
-    } catch(error){
-        res.status(500).json({
-            message:"server error"
-        })
-    }
-})
+}

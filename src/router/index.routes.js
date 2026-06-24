@@ -2,8 +2,8 @@ import express from "express";
 const api=express.Router();
 import authroutes from "./user.routes.js";
 import categries from "./categories.routes.js";
-// api.use("/live",liveroutes);
-// api.use("/seller",selleroutes);
+import  products from "./product.routes.js"
 api.use("/categories",categries)
+api.use("/products",products)
 api.use("/",authroutes);
 export default api;
