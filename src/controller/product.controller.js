@@ -2,13 +2,13 @@ import { eq, and, or, like, desc, asc, sql } from "drizzle-orm";
 import { categories } from "../db/schema/categories.js";
 import { flowers } from "../db/schema/flower.js";
 import { db } from "../configuration/db.js";
+import  slugify from "slugify"
 import bcrypt from "bcrypt";
 
 export async function createProducts(req, res, next) {
     try {
         const {
             name,
-            slug,
             categoryId,
             imageUrl,
             thumbnailUrl,
@@ -21,14 +21,23 @@ export async function createProducts(req, res, next) {
             metaTitle,
             metaDescription,
         } = req.body;
+
+        let slug = slugify(name, { lower: true, strict: true });
+        const existingProduct = await db
+            .select()
+            .from(flowers)
+            .where(eq(flowers.slug, slug))
+            .limit(1);
+        if (existingProduct.length > 0) {
+            slug = `${slug}-${Date.now().toString().slice(-4)}`;
+        }
         const [product] = await db
             .insert(flowers)
             .values({
                 name,
                 slug,
                 categoryId: Number(categoryId),
-                imageUrl,
-                thumbnailUrl,
+                imageUrl:req.file ? global.config.productImageFilePath+"/"+req.file.filename:"",
                 shortDescription,
                 description,
                 price: Number(price),
@@ -52,6 +61,7 @@ export async function createProducts(req, res, next) {
             data: product,
         });
     } catch (error) {
+        console.log(error)
         next(error);
     }
 }
