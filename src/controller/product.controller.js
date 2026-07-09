@@ -116,6 +116,7 @@ export async function getAllProducts(req, res, next) {
                 price: flowers.price,
                 sku: flowers.sku,
                 stockQuantity: flowers.stockQuantity,
+                imageUrl:flowers.imageUrl,
                 categoryId: flowers.categoryId,
                 createdAt: flowers.createdAt,
                 updatedAt: flowers.updatedAt,

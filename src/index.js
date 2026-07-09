@@ -34,12 +34,21 @@ export const i18n = new I18n({
 app.use(i18n.init);
 
 // Security headers
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 app.use(compression());
 app.use(cors());
 
+
+
+
 // Logging
 app.use(morgan("dev"));
+
+app.use("/public", express.static(path.join(__dirname, "../public")));
 
 // Cache control
 app.use((req, res, next) => {
