@@ -10,7 +10,8 @@ import {ensureAuth,setModule} from "../middleware/auth.js"
 import { validationMessageLocale } from "../utility/validationMessageLocale.js";
 import multer from "multer";
 import fs from 'fs';       
-import path from 'path'; 
+import path from 'path';
+setModule("Products")
 const api=express.Router();
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -49,9 +50,9 @@ const upload = multer({
   },
 }
 )
-api.post("/",upload.single('productImage'),createProducts)
+api.post("/",upload.single('productImage'),ensureAuth("Admin"),createProducts)
 api.get("/",getAllProducts)
 api.get("/:id",getAllProductsById)
-api.put("/:id",updateProducts)
-api.delete("/:id",deleteProducts)
+api.put("/:id",ensureAuth("Admin"),updateProducts)
+api.delete("/:id",ensureAuth("Admin"),deleteProducts)
 export default api;

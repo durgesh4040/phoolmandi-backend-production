@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/index.js"
+    "start": "nodemon src/index.js",
+     "db:seed": "node src/db/seed.js"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +17,7 @@
     "cloudinary": "^2.7.0",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
+    "country-state-city": "^3.2.1",
     "crypto": "^1.0.1",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.45.2",
