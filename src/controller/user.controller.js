@@ -4,6 +4,8 @@ import { db } from "../configuration/db.js";
 import bcrypt from "bcrypt";
 import { createAccesstoken } from "../utility/util.js";
 import { globalMailService } from "../service/globalMailService.js";
+import { createMessage } from "../utility/smsService.js";
+import { generateOtp } from "../utility/generateOtp.js";
 
 //===================> Register User <===========
 export async function register(req, res, next) {
@@ -819,6 +821,28 @@ export async function updateProfile(req, res, next) {
       data: updatedUser
     });
   } catch (error) {
+    next(error);
+  }
+}
+
+
+
+//=============================> Send Otp function <================
+export async function sendOtp(req,res,next){
+  try{
+    let otp=generateOtp();
+    console.log(otp)
+    const data={
+      body:`Your Otp is ${otp}`,
+      to:"+916394423282"
+    }
+    const result=await createMessage(data);
+    return res.status(200).send({
+      status:"success",
+      message:res.__("sms.sentSuccessfully")
+    })
+
+  }catch{
     next(error);
   }
 }

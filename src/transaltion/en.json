@@ -2,5 +2,8 @@
 	"invalidFileType": "invalidFileType",
 	"categories": {
 		"create": "categories.create"
+	},
+	"sms": {
+		"sentSuccessfully": "sms.sentSuccessfully"
 	}
 }
