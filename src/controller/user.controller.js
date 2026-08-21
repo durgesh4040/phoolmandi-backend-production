@@ -831,10 +831,9 @@ export async function updateProfile(req, res, next) {
 export async function sendOtp(req,res,next){
   try{
     let otp=generateOtp();
-    console.log(otp)
     const data={
       body:`Your Otp is ${otp}`,
-      to:"+916394423282"
+      to:req.body.phoneNo
     }
     const result=await createMessage(data);
     return res.status(200).send({

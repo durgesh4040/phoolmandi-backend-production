@@ -5,5 +5,6 @@ export async function createMessage(data){
     from: process.env.TWILIO_PHONE_NUMBER,
     to:data.to
   });
+  console.log(message)
   return message
 }

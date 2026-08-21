@@ -1,5 +1,6 @@
 import { eq, and, or, like, desc, asc, sql } from "drizzle-orm";
 import { inquiries } from "../db/schema/inquiry.js";
+
 import { db } from "../configuration/db.js";
 import  slugify from "slugify"
 import bcrypt from "bcrypt";
@@ -275,7 +276,6 @@ export async function updateProducts(req, res, next) {
         next(error);
     }
 }
-
 
 export async function deleteProducts(req, res, next) {
     try {
