@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/index.js --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js",
     "start": "nodemon src/index.js",
     "db:seed": "node src/db/seed.js"
   },
