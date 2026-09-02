@@ -5,23 +5,41 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/index.js"
+    "start": "nodemon src/index.js",
+    "db:seed": "node src/db/seed.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "async_hooks": "^1.0.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.7.0",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
+    "country-state-city": "^3.2.1",
+    "crypto": "^1.0.1",
     "dotenv": "^17.2.1",
+    "drizzle-orm": "^0.45.2",
     "express": "^5.1.0",
+    "handlebars": "^4.7.9",
+    "helmet": "^8.2.0",
+    "i18n": "^0.15.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.18.0",
-    "multer": "^2.0.2",
+    "morgan": "^1.11.0",
+    "multer": "^2.2.0",
     "node-cache": "^5.1.2",
     "nodemailer": "^7.0.6",
     "nodemon": "^3.1.10",
-    "router": "^2.2.0"
+    "pg": "^8.22.0",
+    "router": "^2.2.0",
+    "sib-api-v3-sdk": "^8.5.0",
+    "slugify": "^1.6.9",
+    "twilio": "^6.0.2",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10"
   }
 }

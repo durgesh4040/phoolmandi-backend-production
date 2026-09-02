@@ -1,9 +1,12 @@
-import { Router } from "express";
-import { login, register, test } from "../controller/userController.js";
-const router=Router();
-
-router.post("/auth/register",register)
-router.post("/auth/login",login)
-router.get("/test",test)
-
-export default router;
+import express from "express";
+import { login, register, test, getUser,getAllUsers,sendOtp} from "../controller/user.controller.js";
+import {ensureAuth,setModule} from "../middleware/auth.js"
+const api=express.Router();
+setModule("Users")
+api.post("/",register)
+api.post("/login",login)
+api.get("/",ensureAuth("Admin"),getAllUsers)
+api.get("/:id",getUser)
+api.get("/test",test)
+api.post("/send-otp",sendOtp)
+export default api;

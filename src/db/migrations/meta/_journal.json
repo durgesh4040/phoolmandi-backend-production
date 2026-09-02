@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1781952759550,
+      "tag": "0000_create_flowers_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781954146066,
+      "tag": "0001_create_users_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782065162250,
+      "tag": "0002_create-categories-table",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783845296165,
+      "tag": "0003_inquiry",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783848854485,
+      "tag": "0004_dark_sheva_callister",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787335261612,
+      "tag": "0005_flippant_scarlet_spider",
+      "breakpoints": true
+    }
+  ]
+}

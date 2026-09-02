@@ -1,55 +1,41 @@
 import { eq, and, or, like, desc, asc, sql } from "drizzle-orm";
-import { categories } from "../db/schema/categories.js";
-import { flowers } from "../db/schema/flower.js";
+import { inquiries } from "../db/schema/inquiry.js";
+
 import { db } from "../configuration/db.js";
 import  slugify from "slugify"
 import bcrypt from "bcrypt";
 
-export async function createProducts(req, res, next) {
+export async function createInquiries(req, res, next) {
     try {
         const {
-            name,
-            categoryId,
-            imageUrl,
-            thumbnailUrl,
-            shortDescription,
-            description,
-            price,
-            compareAtPrice,
-            stockQuantity,
-            sku,
-            metaTitle,
-            metaDescription,
+            userId,
+            productId,
+            phoneNo,
+            isPhoneVerified,
+            otpCode,
+            otpExpire,
+            quantity,
+            countryId,
+            stateId,
+            cityId,
+            status,
         } = req.body;
 
-        let slug = slugify(name, { lower: true, strict: true });
-        const existingProduct = await db
-            .select()
-            .from(flowers)
-            .where(eq(flowers.slug, slug))
-            .limit(1);
-        if (existingProduct.length > 0) {
-            slug = `${slug}-${Date.now().toString().slice(-4)}`;
-        }
-        const [product] = await db
-            .insert(flowers)
+        const [inquiry] = await db
+            .insert(inquiries)
             .values({
-                name,
-                slug,
-                categoryId: Number(categoryId),
-                imageUrl:req.file ? global.config.productImageFilePath+"/"+req.file.filename:"",
-                shortDescription,
-                description,
-                price: Number(price),
-                compareAtPrice: compareAtPrice
-                    ? Number(compareAtPrice)
-                    : null,
-                stockQuantity: Number(stockQuantity || 0),
-                sku,
-                metaTitle,
-                metaDescription,
+                userId,
+                productId,
+                phoneNo,
+                isPhoneVerified,
+                otpCode,
+                otpExpire,
+                quantity,
+                countryId,
+                stateId,
+                cityId,
+                status,
                 createdBy: req.user?.id,
-                updatedBy: req.user?.id,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             })
@@ -57,11 +43,10 @@ export async function createProducts(req, res, next) {
 
         return res.status(201).json({
             status: "success",
-            message: res.__("categories.create") || "Categories created successfully",
-            data: product,
+            message: res.__("inquiries.create") || "Inquiries created successfully",
+            data: inquiry,
         });
     } catch (error) {
-        console.log(error)
         next(error);
     }
 }
@@ -291,7 +276,6 @@ export async function updateProducts(req, res, next) {
         next(error);
     }
 }
-
 
 export async function deleteProducts(req, res, next) {
     try {
