@@ -39,13 +39,11 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     const ok =
-      /pdf|jpeg|jpg|png/.test(file.mimetype) &&
-      /\.(pdf|jpg|jpeg|png)$/i.test(file.originalname);
+      /pdf|jpeg|jpg|png|webp|octet-stream/.test(file.mimetype) &&
+      /\.(pdf|jpg|jpeg|png|webp)$/i.test(file.originalname);
     if (ok) return cb(null, true);
     return cb(
-      new Error(
-        validationMessageLocale(req.headers, "invalidFileType")
-      )
+      new Error(`Invalid file type. Mimetype: ${file.mimetype}, Name: ${file.originalname}. Only PDF, JPEG, JPG, PNG, and WEBP are allowed.`)
     );
   },
 }

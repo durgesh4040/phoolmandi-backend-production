@@ -61,7 +61,7 @@ export async function createProducts(req, res, next) {
             data: product,
         });
     } catch (error) {
-        console.log(error)
+        console.error("Error in createProducts:", error);
         next(error);
     }
 }

@@ -1,7 +1,7 @@
 import { decodeToken } from "../utility/util.js";
 import { users } from "../db/schema/user.js";
 import { db } from "../configuration/db.js";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, isNull } from "drizzle-orm";
 
 export const ensureAuth = (...userType) => {
   return async function(req, res, next) {
@@ -25,16 +25,10 @@ export const ensureAuth = (...userType) => {
     let payload;
     try {
       payload = decodeToken(token);
-      if (payload.expiresIn < Math.floor(Date.now() / 1000)) {
-        return res.status(401).send({
-          status: "error",
-          message: "Token Expired"
-        });
-      }
     } catch (err) {
       return res.status(401).send({
         status: "error",
-        message: "Invalid Token"
+        message: err.name === "TokenExpiredError" ? "Token Expired" : "Invalid Token"
       });
     }
 
@@ -49,11 +43,10 @@ export const ensureAuth = (...userType) => {
           and(
             eq(users.id, userId),
             eq(users.status, "Active"),
-            sql`${users.deletedAt} IS NULL`
+            isNull(users.deletedAt)
           )
         )
         .limit(1);
-
       if (!user) {
         return res.status(404).send({
           status: "error",
