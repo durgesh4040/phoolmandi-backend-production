@@ -116,7 +116,7 @@ export async function login(req, res, next) {
       });
     }
 
-    const token = generateToken(user.id);
+    const token = createAccesstoken(user);
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
