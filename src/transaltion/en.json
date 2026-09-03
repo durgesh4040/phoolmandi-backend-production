@@ -8,5 +8,8 @@
 	},
 	"contacts": {
 		"create": "contacts.create"
+	},
+	"users": {
+		"create": "users.create"
 	}
 }

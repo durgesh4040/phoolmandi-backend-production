@@ -86,7 +86,8 @@ app.use((err, req, res, next) => {
   logger.error(err);
   res.status(500).send({
     status: "error",
-    message: err.message || "Internal server error"
+    message: err.message || err.code || "Internal server error",
+    errorDetail: err
   });
 });
 

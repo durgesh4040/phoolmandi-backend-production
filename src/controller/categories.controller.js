@@ -9,9 +9,10 @@ export async function createcategories(req, res, next) {
             name,
             slug,
             description,
-            imageUrl,
             createdBy
         } = req.body;
+        
+        const imageUrl = req.file ? global.config.categoryImageFilePath + "/" + req.file.filename : "";
         // createdBy=req.user.id;
         const [data] = await db
             .insert(categories)
@@ -161,6 +162,10 @@ export async function updateCategories(req, res, next) {
 
         const updateData = { ...req.body };
         updateData.updatedAt = new Date();
+        
+        if (req.file) {
+            updateData.imageUrl = global.config.categoryImageFilePath + "/" + req.file.filename;
+        }
 
         const [updatedCategory] = await db
             .update(categories)
